@@ -58,8 +58,7 @@ export default class HTMLGrabr {
     const ogProps = DOM.extractOpenGraphProps(doc)
 
     // Clean the DOM
-    const isBacklisted = await this.config.isBacklisted
-    clean(doc, { baseURL, debug: this.config.debug , isBacklisted })
+    clean(doc, { baseURL, debug: this.config.debug , isBacklisted: this.config.isBacklisted })
 
     // Extract images
     const images = DOM.extractImages(doc, ogProps.image)
