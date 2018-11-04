@@ -12,7 +12,7 @@
   "author": "Nicolas Carlier <https://github.com/ncarlier>",
   "repository": {
     "type": "git",
-    "url": "git@github.com:ncarlier/htmlgrabr.git"
+    "url": "https://github.com/ncarlier/htmlgrabr.git"
   },
   "license": "MIT",
   "engines": {
