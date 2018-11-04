@@ -1,6 +1,7 @@
 # HTMLGrabr library
 
 [![Travis](https://img.shields.io/travis/ncarlier/htmlgrabr.svg)](https://travis-ci.org/ncarlier/htmlgrabr)
+[![Coverage Status](https://coveralls.io/repos/github/ncarlier/htmlgrabr/badge.svg?branch=master)](https://coveralls.io/github/ncarlier/htmlgrabr?branch=master)
 [![Donate](https://img.shields.io/badge/donate-paypal-blue.svg)](https://paypal.me/nunux)
 
 A Node.js library to grab and clean HTML content.
