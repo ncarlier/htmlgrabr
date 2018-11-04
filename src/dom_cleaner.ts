@@ -1,10 +1,11 @@
 
 import { resolve, parse } from 'url'
-import blacklistDB from './blacklist'
+import { BlacklistCtrlFunc } from './blacklist';
 
 interface CleanupProps {
   baseURL?: string
   debug?: boolean
+  isBacklisted?: BlacklistCtrlFunc
 }
 
 interface FilterFunc {
@@ -46,15 +47,15 @@ export function removeImageTraker(): FilterFunc {
 
 /**
  * Delete all HTML elements that refer to a blacklisted site.
- * @param blacklist database of unwanted sites
+ * @param isBlacklist function to control if the hostname is blacklisted
  * @returns the filtering function
  */
-export function removeBlacklistedLinks(blacklist: Set<string>): FilterFunc {
+export function removeBlacklistedLinks(isBlacklisted: BlacklistCtrlFunc): FilterFunc {
   return function (node: Element) {
     const src = node.getAttribute('src') || node.getAttribute('href')
     if (src) {
       const hostname = parse(src).hostname || 'undefined'
-      if (blacklist.has(hostname) && node.parentNode) {
+      if (isBlacklisted(hostname) && node.parentNode) {
         node.parentNode.removeChild(node)
         return null
       }
@@ -120,7 +121,6 @@ const DefaultFilterChain = [
   removeAttributes(['id', 'class']),
   removeImageTraker(),
   externalizeLinks(),
-  removeBlacklistedLinks(blacklistDB),
   // moveAttribute('data-src', 'src')
 ]
 
@@ -133,6 +133,9 @@ const DefaultFilterChain = [
 export function clean(doc: Document, props: CleanupProps, filters: FilterFunc[] = DefaultFilterChain) {
   if (props.baseURL) {
     filters.push(rebaseSrcAttribute(props.baseURL))
+  }
+  if (props.isBacklisted) {
+    filters = [removeBlacklistedLinks(props.isBacklisted), ...filters]
   }
   const $nodes = Array.from(doc.getElementsByTagName('*'))
   $nodes.forEach(($node: Element) => {

@@ -3,6 +3,7 @@ import { URL } from 'url'
 import { promisify } from 'util'
 import * as DOM from './dom_handler'
 import { clean } from './dom_cleaner'
+import { isBlacklisted, BlacklistCtrlFunc } from './blacklist';
 
 const pretty = require('pretty')
 const h2p = require('html2plaintext')
@@ -11,6 +12,7 @@ const readability = promisify(require('node-readability'))
 
 interface GrabberConfig {
   debug?: boolean
+  isBacklisted?: BlacklistCtrlFunc
   headers?: Headers
 }
 
@@ -25,6 +27,7 @@ interface GrabbedPage {
 
 const DefaultConfig: GrabberConfig = {
   debug: false,
+  isBacklisted: isBlacklisted,
   headers: new Headers({
     'User-Agent': 'Mozilla/5.0 (compatible; HTMLGrabr/1.0)',
   })
@@ -55,7 +58,8 @@ export default class HTMLGrabr {
     const ogProps = DOM.extractOpenGraphProps(doc)
 
     // Clean the DOM
-    clean(doc, { baseURL, debug: this.config.debug })
+    const isBacklisted = await this.config.isBacklisted
+    clean(doc, { baseURL, debug: this.config.debug , isBacklisted })
 
     // Extract images
     const images = DOM.extractImages(doc, ogProps.image)
