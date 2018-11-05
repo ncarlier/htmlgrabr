@@ -27,17 +27,17 @@ npm install --save htmlgrabr
 The in your code:
 
 ```javascript
-import HTMLGrabr from 'htmlgrabr'
+const HTMLGrabr = require('htmlgrabr')
+const { URL } = require('url')
 
-const url = new URL('http://example.com/foo.html')
-const page = async HTMLGrabr.grab(url)
+const grabber = new HTMLGrabr()
 
-console.log('Page title:', page.title)
-console.log('Page illustration:', page.image)
-console.log('Page URL:', page.url)
-console.log('Page HTML content:', page.html)
-console.log('Page text content:', page.text)
-console.log('Page images:', page.images)
+grabber.grabUrl(new URL('http://keeper.nunux.org'))
+  .then(page => {
+    console.log(page)
+  }, err => {
+    console.log(err)
+  })
 ```
 
 ---
