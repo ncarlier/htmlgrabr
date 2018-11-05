@@ -1,4 +1,4 @@
-import * as mime from 'mime'
+import * as mime from 'mime-types'
 import { URL } from 'url'
 
 const isValidUrl = (url: string) => {
@@ -75,11 +75,11 @@ export interface ImageMeta {
 export function extractImages(doc: Document, illustration?: string): ImageMeta[] {
   const result: ImageMeta[] = []
   if (illustration) {
-    // Add document Open Graph illustration in first position
+    // Add document Open Graph illustration in first positio
     // This in order to be the document illustration.
     result.push({
       src: illustration,
-      contentType: mime.getType(illustration.replace(/\?.*$/, ''))
+      contentType: mime.lookup(illustration) || ''
     })
   }
   const $images = Array.from(doc.getElementsByTagName('img'))
@@ -89,7 +89,7 @@ export function extractImages(doc: Document, illustration?: string): ImageMeta[]
       if (src && !/^data:/i.test(src)) {
         result.push({
           src,
-          contentType: mime.getType(src.replace(/\?.*$/, ''))
+          contentType: mime.lookup(src) || ''
         })
       }
     }

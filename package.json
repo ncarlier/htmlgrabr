@@ -118,11 +118,11 @@
   },
   "dependencies": {
     "@types/jsdom": "^12.2.0",
-    "@types/mime": "^2.0.0",
+    "@types/mime-types": "^2.1.0",
     "@types/node-fetch": "^2.1.2",
     "html2plaintext": "^2.1.0",
     "jsdom": "^13.0.0",
-    "mime": "^2.3.1",
+    "mime-types": "^2.1.21",
     "node-fetch": "^2.2.0",
     "node-readability": "^3.0.0",
     "pretty": "^2.0.0"
