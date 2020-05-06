@@ -1,83 +1,99 @@
-import fetch, { Headers, Request } from 'node-fetch'
-import { URL } from 'url'
-import { promisify } from 'util'
-import * as DOM from './dom_handler'
-import { clean } from './dom_cleaner'
-import { isBlacklisted, BlacklistCtrlFunc } from './blacklist';
+import fetch, { Headers, Request } from "node-fetch";
+import { URL } from "url";
+import { JSDOM } from "jsdom";
+import * as pretty from "pretty";
+import * as Readability from "mozilla-readability";
 
-const pretty = require('pretty')
-const h2p = require('html2plaintext')
-
-const readability = promisify(require('node-readability'))
+import { sanitize, URLRewriterFunc } from "./sanitize";
+import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta } from "./helpers";
+import { isBlacklisted, BlacklistCtrlFunc } from "./blacklist";
 
 interface GrabberConfig {
-  debug?: boolean
-  isBacklisted?: BlacklistCtrlFunc
-  headers?: Headers
+  debug?: boolean;
+  pretty?: boolean;
+  isBlacklisted?: BlacklistCtrlFunc;
+  rewriteURL?: URLRewriterFunc;
+  headers?: Headers;
 }
 
 interface GrabbedPage {
-  title: string
-  url: string | null
-  image: string | null
-  html: string
-  text: string
-  images: DOM.ImageMeta[]
+  title: string;
+  url: string | null;
+  image: string | null;
+  html: string;
+  text: string;
+  excerpt: string;
+  length: number;
+  images: ImageMeta[];
 }
 
 const DefaultConfig: GrabberConfig = {
   debug: false,
-  isBacklisted: isBlacklisted,
+  pretty: false,
+  isBlacklisted: isBlacklisted,
   headers: new Headers({
-    'User-Agent': 'Mozilla/5.0 (compatible; HTMLGrabr/1.0)',
-  })
-}
+    "User-Agent": "Mozilla/5.0 (compatible; HTMLGrabr/1.0)",
+  }),
+};
 
 export default class HTMLGrabr {
-
-  config: GrabberConfig
+  config: GrabberConfig;
 
   constructor(config: GrabberConfig = DefaultConfig) {
-    this.config = { ...DefaultConfig, ...config }
+    this.config = { ...DefaultConfig, ...config };
   }
 
   /**
-   * Grabs the content of a page from HTML text.
-   * @param html a string that contains HTML code
+   * Grabs the content of a page from HTML content.
+   * @param content a string that contains HTML code
+   * @param baseURL a string that contains HTML base URL
    * @returns a page object
    */
-  async grab(html: string): Promise<GrabbedPage> {
-    // Use Readability.js to extract HTML content
-    const article = await readability(html)
-    const doc = article.document
+  async grab(content: string, baseURL?: string): Promise<GrabbedPage> {
+    const { debug, isBlacklisted, rewriteURL } = this.config;
+
+    // Load sanitized content into a virtual DOM
+    const dom = new JSDOM(content, {
+      url: baseURL,
+    });
+    const doc = dom.window.document;
 
     // Extract base URL
-    const baseURL = DOM.extractBaseUrl(doc) || undefined
+    baseURL = extractBaseUrl(doc) || baseURL;
 
-    // Extract Open Graph propreties
-    const ogProps = DOM.extractOpenGraphProps(doc)
-
-    // Clean the DOM
-    clean(doc, { baseURL, debug: this.config.debug , isBacklisted: this.config.isBacklisted })
+    // Extract Open Graph properties
+    const ogProps = extractOpenGraphProps(doc);
 
     // Extract images
-    const images = DOM.extractImages(doc, ogProps.image)
+    const images = extractImages(doc, ogProps.image);
 
-    // Backup HTML content (if Readability fails)
-    let content = doc.body.innerHTML
-    if (article.content) {
-      // Extract HTML content
-      content = article.content
+    // Use Readability.js to extract HTML content
+    const reader = new Readability(doc, { debug });
+    const article = reader.parse();
+    if (debug) {
+      console.log("article after Readability parsing:", article);
+    }
+
+    // Sanitize content
+    let html = sanitize(article.content, { baseURL, debug, isBlacklisted, rewriteURL });
+    if (debug) {
+      console.log("HTML content after sanitization:", html);
+    }
+
+    if (this.config.pretty) {
+      html = pretty(html, { ocd: true });
     }
 
     return {
       title: ogProps.title || article.title,
       url: ogProps.url || baseURL,
       image: ogProps.image,
-      html: pretty(content, { ocd: true }),
-      text: h2p(content),
-      images
-    }
+      html,
+      text: article.textContent,
+      excerpt: article.excerpt,
+      length: article.length,
+      images,
+    };
   }
 
   /**
@@ -88,17 +104,13 @@ export default class HTMLGrabr {
   async grabUrl(url: URL) {
     const req = new Request(url.toString(), {
       headers: this.config.headers,
-    })
+    });
 
-    const res = await fetch(req)
+    const res = await fetch(req);
     if (!res.ok) {
-      throw new Error(`bad status response: ${res.statusText}`)
+      throw new Error(`bad status response: ${res.statusText}`);
     }
-    const body = await res.text()
-    const result = await this.grab(body)
-    if (!result.url) {
-      result.url = url.toString()
-    }
-    return result
+    const body = await res.text();
+    return await this.grab(body, url.toString());
   }
 }

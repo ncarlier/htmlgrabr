@@ -8,15 +8,31 @@ A Node.js library to grab and clean HTML content.
 
 ### Features
 
-- Extract page content from an URL (`HTMLGrabr.grabURL(url: URL)`)
-- Extract page content from a string (`HTMLGrabr.grab(s: string)`)
-- Clean the page content:
-  - Extract main content using `node-readability`
-  - Extract text content using `html2plaintext`
-  - Remove link or image references of blacklisted sites
-  - Remove pixel tracker
-  - Remove unwanted attributes (by default: `class` and `id`)
+- Extract page content from an URL (`HTMLGrabr.grabURL(url: URL): GrabbedPage`)
+- Extract page content from a string (`HTMLGrabr.grab(s: string): GrabbedPage`)
 - Extract Open Graph properties
+- Clean the page content:
+  - Extract main HTML content using [mozilla-readability](https://github.com/mozilla/readability)
+  - Sanitize HTML content using [DOMPurify](https://github.com/cure53/DOMPurify), with some extras:
+    - Remove blacklisted links or images
+    - Remove pixel tracker
+    - Remove unwanted attributes (such as `style`, `class`, `id`, ...)
+    - And more
+
+The result is a grabbed page object:
+
+```typescript
+interface GrabbedPage {
+  title: string
+  url: string | null
+  image: string | null
+  html: string
+  text: string
+  excerpt: string
+  length: number
+  images: ImageMeta[]
+}
+```
 
 ### Usage
 
@@ -32,11 +48,11 @@ const { URL } = require('url')
 
 const grabber = new HTMLGrabr()
 
-grabber.grabUrl(new URL('http://keeper.nunux.org'))
+grabber.grabUrl(new URL('https://about.readflow.app'))
   .then(page => {
     console.log(page)
   }, err => {
-    console.log(err)
+    console.error(err)
   })
 ```
 
