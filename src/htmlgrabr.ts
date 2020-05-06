@@ -1,30 +1,30 @@
-import fetch, { Headers, Request } from "node-fetch";
-import { URL } from "url";
-import { JSDOM } from "jsdom";
-import * as pretty from "pretty";
-import * as Readability from "mozilla-readability";
+import fetch, { Headers, Request } from 'node-fetch'
+import { URL } from 'url'
+import { JSDOM } from 'jsdom'
+import * as pretty from 'pretty'
+import * as Readability from 'mozilla-readability'
 
-import { sanitize, URLRewriterFunc } from "./sanitize";
-import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta } from "./helpers";
-import { isBlacklisted, BlacklistCtrlFunc } from "./blacklist";
+import { sanitize, URLRewriterFunc } from './sanitize'
+import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta } from './helpers'
+import { isBlacklisted, BlacklistCtrlFunc } from './blacklist'
 
 interface GrabberConfig {
-  debug?: boolean;
-  pretty?: boolean;
-  isBlacklisted?: BlacklistCtrlFunc;
-  rewriteURL?: URLRewriterFunc;
-  headers?: Headers;
+  debug?: boolean
+  pretty?: boolean
+  isBlacklisted?: BlacklistCtrlFunc
+  rewriteURL?: URLRewriterFunc
+  headers?: Headers
 }
 
 interface GrabbedPage {
-  title: string;
-  url: string | null;
-  image: string | null;
-  html: string;
-  text: string;
-  excerpt: string;
-  length: number;
-  images: ImageMeta[];
+  title: string
+  url: string | null
+  image: string | null
+  html: string
+  text: string
+  excerpt: string
+  length: number
+  images: ImageMeta[]
 }
 
 const DefaultConfig: GrabberConfig = {
@@ -32,15 +32,15 @@ const DefaultConfig: GrabberConfig = {
   pretty: false,
   isBlacklisted: isBlacklisted,
   headers: new Headers({
-    "User-Agent": "Mozilla/5.0 (compatible; HTMLGrabr/1.0)",
+    'User-Agent': 'Mozilla/5.0 (compatible; HTMLGrabr/1.0)',
   }),
-};
+}
 
 export default class HTMLGrabr {
-  config: GrabberConfig;
+  config: GrabberConfig
 
-  constructor(config: GrabberConfig = DefaultConfig) {
-    this.config = { ...DefaultConfig, ...config };
+  constructor(config: GrabberConfig = {}) {
+    this.config = { ...DefaultConfig, ...config }
   }
 
   /**
@@ -50,38 +50,38 @@ export default class HTMLGrabr {
    * @returns a page object
    */
   async grab(content: string, baseURL?: string): Promise<GrabbedPage> {
-    const { debug, isBlacklisted, rewriteURL } = this.config;
+    const { debug, isBlacklisted, rewriteURL } = this.config
 
     // Load sanitized content into a virtual DOM
     const dom = new JSDOM(content, {
       url: baseURL,
-    });
-    const doc = dom.window.document;
+    })
+    const doc = dom.window.document
 
     // Extract base URL
-    baseURL = extractBaseUrl(doc) || baseURL;
+    baseURL = extractBaseUrl(doc) || baseURL
 
     // Extract Open Graph properties
-    const ogProps = extractOpenGraphProps(doc);
+    const ogProps = extractOpenGraphProps(doc)
 
     // Extract images
-    const images = extractImages(doc, ogProps.image);
+    const images = extractImages(doc, ogProps.image)
 
     // Use Readability.js to extract HTML content
-    const reader = new Readability(doc, { debug });
-    const article = reader.parse();
+    const reader = new Readability(doc, { debug })
+    const article = reader.parse()
     if (debug) {
-      console.log("article after Readability parsing:", article);
+      console.log('article after Readability parsing:', article)
     }
 
     // Sanitize content
-    let html = sanitize(article.content, { baseURL, debug, isBlacklisted, rewriteURL });
+    let html = sanitize(article.content, { baseURL, debug, isBlacklisted, rewriteURL })
     if (debug) {
-      console.log("HTML content after sanitization:", html);
+      console.log('HTML content after sanitization:', html)
     }
 
     if (this.config.pretty) {
-      html = pretty(html, { ocd: true });
+      html = pretty(html, { ocd: true })
     }
 
     return {
@@ -93,7 +93,7 @@ export default class HTMLGrabr {
       excerpt: article.excerpt,
       length: article.length,
       images,
-    };
+    }
   }
 
   /**
@@ -104,13 +104,13 @@ export default class HTMLGrabr {
   async grabUrl(url: URL) {
     const req = new Request(url.toString(), {
       headers: this.config.headers,
-    });
+    })
 
-    const res = await fetch(req);
+    const res = await fetch(req)
     if (!res.ok) {
-      throw new Error(`bad status response: ${res.statusText}`);
+      throw new Error(`bad status response: ${res.statusText}`)
     }
-    const body = await res.text();
-    return await this.grab(body, url.toString());
+    const body = await res.text()
+    return await this.grab(body, url.toString())
   }
 }

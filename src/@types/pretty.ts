@@ -1,1 +1,1 @@
-declare module "pretty";
+declare module 'pretty'
