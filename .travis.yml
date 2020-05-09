@@ -1,12 +1,11 @@
+sudo: false
 language: node_js
-branches:
-  only:
-    - master
 node_js:
-  - node
-script:
-  - npm run test:prod && npm run build
+  - '12'
+# keep the npm cache to speed up installs
+cache:
+  directories:
+    - '$HOME/.npm'
 after_success:
-  - npm run report-coverage
-  - npm run deploy-docs
-  - npm run semantic-release
+  - npm run cov:send
+  - npm run cov:check

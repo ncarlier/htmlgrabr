@@ -1,23 +1,20 @@
-import { resolve, parse } from 'url'
+import createDOMPurify from 'dompurify'
 import { JSDOM } from 'jsdom'
-import * as createDOMPurify from 'dompurify'
+import { parse, resolve } from 'url'
 
 import { BlacklistCtrlFunc } from './blacklist'
 import { isElementNode } from './helpers'
 
-export interface URLRewriterFunc {
-  (url: string): string
-}
+export type URLRewriterFunc = (url: string) => string
+
+type FilterFunc = (currentNode: Element, event: DOMPurify.HookEvent, config: DOMPurify.Config) => void
 
 interface CleanupProps {
-  baseURL?: string
-  debug?: boolean
-  isBlacklisted?: BlacklistCtrlFunc
-  rewriteURL?: URLRewriterFunc
-}
-
-interface FilterFunc {
-  (currentNode: Element, event: DOMPurify.HookEvent, config: DOMPurify.Config): void
+  readonly baseURL?: string
+  readonly debug?: boolean
+  readonly isBlacklisted?: BlacklistCtrlFunc
+  readonly rewriteURL?: URLRewriterFunc
+  readonly filters?: readonly FilterFunc[]
 }
 
 /**
@@ -25,7 +22,7 @@ interface FilterFunc {
  * @param blacklist the list of attributes to remove
  * @returns the filtering function
  */
-export function removeAttributes(blacklist: string[]): FilterFunc {
+export function removeAttributes(blacklist: readonly string[]): FilterFunc {
   return (node) => {
     if (isElementNode(node)) {
       blacklist.forEach((attr) => node.hasAttribute(attr) && node.removeAttribute(attr))
@@ -74,7 +71,7 @@ export function removeBlacklistedLinks(isBlacklisted: BlacklistCtrlFunc): Filter
  */
 export function externalizeLinks(): FilterFunc {
   return (node) => {
-    if (node.tagName == 'A' && node.hasAttribute('href')) {
+    if (node.tagName === 'A' && node.hasAttribute('href')) {
       node.setAttribute('target', '_blank')
       node.setAttribute('rel', 'noopener noreferrer')
     }
@@ -120,7 +117,7 @@ export function rewriteSrcAttribute(rewriteURL: URLRewriterFunc): FilterFunc {
   }
 }
 
-const DefaultFilterChain = [
+const DefaultFilterChain: ReadonlyArray<any> = [
   removeAttributes(['id', 'class']),
   removeImageTracker(),
   externalizeLinks(),
@@ -133,10 +130,11 @@ const DefaultFilterChain = [
  * @param props properties used by filters
  * @param filters chain filter
  */
-export function sanitize(html: string, props: CleanupProps, filters: FilterFunc[] = [...DefaultFilterChain]) {
+export function sanitize(html: string, props: CleanupProps): string {
   const window = new JSDOM('<!DOCTYPE html>').window as unknown
   const purify = createDOMPurify(window as Window) as DOMPurify.DOMPurifyI
 
+  let filters = [...DefaultFilterChain, props.filters]
   if (props.baseURL) {
     filters.push(rebaseSrcAttribute(props.baseURL))
   }

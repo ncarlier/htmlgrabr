@@ -1,9 +1,5 @@
-export interface BlacklistCtrlFunc {
-  (hostname: string): boolean
-}
+export type BlacklistCtrlFunc = (hostname: string) => boolean
 
 const db = new Set(['doubleclick.net', 'feeds.feedburner.com'])
 
-export function isBlacklisted(hostname: string) {
-  return db.has(hostname)
-}
+export const isBlacklisted: BlacklistCtrlFunc = (hostname: string) => db.has(hostname)

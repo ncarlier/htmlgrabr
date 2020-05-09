@@ -1,43 +1,43 @@
-import fetch, { Headers, Request } from 'node-fetch'
-import { URL } from 'url'
 import { JSDOM } from 'jsdom'
-import * as pretty from 'pretty'
-import * as Readability from 'mozilla-readability'
+import Readability from 'mozilla-readability'
+import fetch, { Headers, Request } from 'node-fetch'
+import pretty from 'pretty'
+import { URL } from 'url'
 
-import { sanitize, URLRewriterFunc } from './sanitize'
+import { BlacklistCtrlFunc, isBlacklisted as defaultIsBlacklisted } from './blacklist'
 import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta } from './helpers'
-import { isBlacklisted, BlacklistCtrlFunc } from './blacklist'
+import { sanitize, URLRewriterFunc } from './sanitize'
 
 interface GrabberConfig {
-  debug?: boolean
-  pretty?: boolean
-  isBlacklisted?: BlacklistCtrlFunc
-  rewriteURL?: URLRewriterFunc
-  headers?: Headers
+  readonly debug?: boolean
+  readonly pretty?: boolean
+  readonly isBlacklisted?: BlacklistCtrlFunc
+  readonly rewriteURL?: URLRewriterFunc
+  readonly headers?: Headers
 }
 
 interface GrabbedPage {
-  title: string
-  url: string | null
-  image: string | null
-  html: string
-  text: string
-  excerpt: string
-  length: number
-  images: ImageMeta[]
+  readonly title: string
+  readonly url: string | null
+  readonly image: string | null
+  readonly html: string
+  readonly text: string
+  readonly excerpt: string
+  readonly length: number
+  readonly images: ImageMeta[]
 }
 
 const DefaultConfig: GrabberConfig = {
   debug: false,
   pretty: false,
-  isBlacklisted: isBlacklisted,
   headers: new Headers({
     'User-Agent': 'Mozilla/5.0 (compatible; HTMLGrabr/1.0)',
   }),
+  isBlacklisted: defaultIsBlacklisted,
 }
 
 export default class HTMLGrabr {
-  config: GrabberConfig
+  public readonly config: GrabberConfig
 
   constructor(config: GrabberConfig = {}) {
     this.config = { ...DefaultConfig, ...config }
@@ -49,17 +49,17 @@ export default class HTMLGrabr {
    * @param baseURL a string that contains HTML base URL
    * @returns a page object
    */
-  async grab(content: string, baseURL?: string): Promise<GrabbedPage> {
+  public async grab(content: string, baseURLFallback?: string): Promise<GrabbedPage> {
     const { debug, isBlacklisted, rewriteURL } = this.config
 
     // Load sanitized content into a virtual DOM
     const dom = new JSDOM(content, {
-      url: baseURL,
+      url: baseURLFallback,
     })
     const doc = dom.window.document
 
     // Extract base URL
-    baseURL = extractBaseUrl(doc) || baseURL
+    const baseURL = extractBaseUrl(doc) || baseURLFallback
 
     // Extract Open Graph properties
     const ogProps = extractOpenGraphProps(doc)
@@ -101,7 +101,7 @@ export default class HTMLGrabr {
    * @param url the URL to fetch and process
    * @returns a page object
    */
-  async grabUrl(url: URL) {
+  public async grabUrl(url: URL): Promise<GrabbedPage> {
     const req = new Request(url.toString(), {
       headers: this.config.headers,
     })
@@ -111,6 +111,6 @@ export default class HTMLGrabr {
       throw new Error(`bad status response: ${res.statusText}`)
     }
     const body = await res.text()
-    return await this.grab(body, url.toString())
+    return this.grab(body, url.toString())
   }
 }

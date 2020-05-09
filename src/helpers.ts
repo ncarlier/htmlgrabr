@@ -3,9 +3,9 @@ import { URL } from 'url'
 
 const isValidUrl = (url: string) => {
   try {
-    new URL(url)
-    return true
-  } catch (e) {
+    const  u = new URL(url)
+    return u.protocol === "http:" || u.protocol === "https:"
+  } catch (_) {
     return false
   }
 }
@@ -14,7 +14,7 @@ const isValidUrl = (url: string) => {
  * Returns true if the HTML node is an element.
  * @param node HTML node
  */
-export const isElementNode = (node: Element) => node.nodeType == 1
+export const isElementNode = (node: Element) => node.nodeType === 1
 
 /**
  * Extract base URL from headers of a DOM.
@@ -40,6 +40,7 @@ export function extractBaseUrl(doc: Document): string | null {
 }
 
 interface OpenGraphProps {
+  // tslint:disable-next-line: readonly-keyword
   [key: string]: any
 }
 
@@ -68,8 +69,8 @@ export function extractOpenGraphProps(doc: Document): OpenGraphProps {
 }
 
 export interface ImageMeta {
-  src: string
-  contentType: string | null
+  readonly src: string
+  readonly contentType: string | null
 }
 
 /**
