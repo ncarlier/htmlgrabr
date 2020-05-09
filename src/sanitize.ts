@@ -7,7 +7,7 @@ import { isElementNode } from './helpers'
 
 export type URLRewriterFunc = (url: string) => string
 
-type FilterFunc = (currentNode: Element, event: DOMPurify.HookEvent, config: DOMPurify.Config) => void
+export type FilterFunc = (currentNode: Element, event: DOMPurify.HookEvent, config: DOMPurify.Config) => void
 
 interface CleanupProps {
   readonly baseURL?: string
@@ -22,7 +22,7 @@ interface CleanupProps {
  * @param blacklist the list of attributes to remove
  * @returns the filtering function
  */
-export function removeAttributes(blacklist: readonly string[]): FilterFunc {
+function removeAttributes(blacklist: readonly string[]): FilterFunc {
   return (node) => {
     if (isElementNode(node)) {
       blacklist.forEach((attr) => node.hasAttribute(attr) && node.removeAttribute(attr))
@@ -34,7 +34,7 @@ export function removeAttributes(blacklist: readonly string[]): FilterFunc {
  * Remove a image that can be a tracker (1px square).
  * @returns the filtering function
  */
-export function removeImageTracker(): FilterFunc {
+function removeImageTracker(): FilterFunc {
   return (node) => {
     if (node.tagName === 'IMG' && (node.hasAttribute('height') || node.hasAttribute('width'))) {
       const height = node.getAttribute('height')
@@ -51,7 +51,7 @@ export function removeImageTracker(): FilterFunc {
  * @param isBlacklist function to control if the hostname is blacklisted
  * @returns the filtering function
  */
-export function removeBlacklistedLinks(isBlacklisted: BlacklistCtrlFunc): FilterFunc {
+function removeBlacklistedLinks(isBlacklisted: BlacklistCtrlFunc): FilterFunc {
   return (node) => {
     if (isElementNode(node) && (node.hasAttribute('src') || node.hasAttribute('href'))) {
       const src = node.getAttribute('src') || node.getAttribute('href')
@@ -69,7 +69,7 @@ export function removeBlacklistedLinks(isBlacklisted: BlacklistCtrlFunc): Filter
  * Update link to target new blank window.
  * @returns the filtering function
  */
-export function externalizeLinks(): FilterFunc {
+function externalizeLinks(): FilterFunc {
   return (node) => {
     if (node.tagName === 'A' && node.hasAttribute('href')) {
       node.setAttribute('target', '_blank')
@@ -83,7 +83,7 @@ export function externalizeLinks(): FilterFunc {
  * @param baseURL the base URL used to make the link absolute
  * @returns the filtering function
  */
-export function rebaseSrcAttribute(baseURL: string): FilterFunc {
+function rebaseSrcAttribute(baseURL: string): FilterFunc {
   const absoluteUrlRe = new RegExp('^https?://')
   return (node) => {
     if (isElementNode(node)) {
@@ -98,7 +98,7 @@ export function rebaseSrcAttribute(baseURL: string): FilterFunc {
   }
 }
 
-export function addLazyLoadingAttribute(): FilterFunc {
+function addLazyLoadingAttribute(): FilterFunc {
   return (node) => {
     if (node.nodeName === 'IFRAME' || node.nodeName === 'IMG') {
       node.setAttribute('loading', 'lazy')
@@ -106,7 +106,7 @@ export function addLazyLoadingAttribute(): FilterFunc {
   }
 }
 
-export function rewriteSrcAttribute(rewriteURL: URLRewriterFunc): FilterFunc {
+function rewriteSrcAttribute(rewriteURL: URLRewriterFunc): FilterFunc {
   return (node) => {
     if (isElementNode(node) && node.hasAttribute('src')) {
       const value = node.getAttribute('src')

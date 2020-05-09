@@ -36,7 +36,7 @@ const DefaultConfig: GrabberConfig = {
   isBlacklisted: defaultIsBlacklisted,
 }
 
-export default class HTMLGrabr {
+export class HTMLGrabr {
   public readonly config: GrabberConfig
 
   constructor(config: GrabberConfig = {}) {
@@ -114,3 +114,5 @@ export default class HTMLGrabr {
     return this.grab(body, url.toString())
   }
 }
+
+export default HTMLGrabr
