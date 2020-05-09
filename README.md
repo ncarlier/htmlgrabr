@@ -43,7 +43,7 @@ npm install --save htmlgrabr
 The in your code:
 
 ```javascript
-const HTMLGrabr = require('htmlgrabr')
+const HTMLGrabr = require('htmlgrabr').HTMLGrabr
 const { URL } = require('url')
 
 const grabber = new HTMLGrabr()
