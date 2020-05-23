@@ -13,7 +13,7 @@ interface TestCase {
   [key: string]: any
 }
 
-test('fetch bad URL', async (t) => {
+test('grab bad URL', async (t) => {
   const grabber = new HTMLGrabr()
   const grab = grabber.grabUrl(new URL('https://www.nunux.org/404'))
 
@@ -21,7 +21,7 @@ test('fetch bad URL', async (t) => {
 	t.is(error.message, 'bad status response: Not Found')
 })
 
-test('fetch a URL', async (t) => {
+test('grab valid URL', async (t) => {
   const grabber = new HTMLGrabr()
   t.falsy(grabber.config.debug)
   if (grabber.config.headers) {
@@ -33,7 +33,19 @@ test('fetch a URL', async (t) => {
   t.is(page.url, 'https://keeper.nunux.org/')
 })
 
-test('simple cleanup test case', async (t) => {
+test('grab URL with redirect rule definition', async (t) => {
+  const grabber = new HTMLGrabr()
+  t.falsy(grabber.config.debug)
+  if (grabber.config.headers) {
+    t.truthy(grabber.config.headers.has('User-Agent'))
+  }
+  const page = await grabber.grabUrl(new URL('https://www.reddit.com/r/programming/comments/gp3yq6/kong_api_gateway_from_zero_to_production/'))
+  t.not(page, null)
+  t.is(page.title, 'Kong API Gateway - Zero to Production')
+  t.is(page.url, 'https://medium.com/@imarunrk/kong-api-gateway-zero-to-production-5b8431495ee')
+})
+
+test('grab simple HTML content', async (t) => {
   const grabber = new HTMLGrabr({
     pretty: true,
     rewriteURL: (src) => `https://foo.bar/${src}`,
@@ -56,7 +68,7 @@ test('simple cleanup test case', async (t) => {
   t.is(page.excerpt, 'Hello World!')
 })
 
-test('iterate over all cleanup test cases', async (t) => {
+test('grab uggly HTML contents', async (t) => {
   // load test cases
   const testCasesLocation = resolve(process.cwd(), 'specs')
   const files = await ls(testCasesLocation)

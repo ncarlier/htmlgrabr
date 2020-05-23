@@ -5,14 +5,16 @@ import pretty from 'pretty'
 import { URL } from 'url'
 
 import { BlacklistCtrlFunc, isBlacklisted as defaultIsBlacklisted } from './blacklist'
-import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta } from './helpers'
+import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta, isElementNode } from './helpers'
 import { sanitize, URLRewriterFunc } from './sanitize'
+import { DefaultRules, Rule } from './rules'
 
 interface GrabberConfig {
   readonly debug?: boolean
   readonly pretty?: boolean
   readonly isBlacklisted?: BlacklistCtrlFunc
   readonly rewriteURL?: URLRewriterFunc
+  readonly rules?: Map<string, Rule>
   readonly headers?: Headers
 }
 
@@ -33,6 +35,7 @@ const DefaultConfig: GrabberConfig = {
   headers: new Headers({
     'User-Agent': 'Mozilla/5.0 (compatible; HTMLGrabr/1.0)',
   }),
+  rules: DefaultRules,
   isBlacklisted: defaultIsBlacklisted,
 }
 
@@ -52,11 +55,20 @@ export class HTMLGrabr {
   public async grab(content: string, baseURLFallback?: string): Promise<GrabbedPage> {
     const { debug, isBlacklisted, rewriteURL } = this.config
 
-    // Load sanitized content into a virtual DOM
+    // Load content into a virtual DOM
     const dom = new JSDOM(content, {
       url: baseURLFallback,
     })
     const doc = dom.window.document
+
+    // Apply rule if exists
+    if (baseURLFallback) {
+      const { hostname } = new URL(baseURLFallback)
+      const redirect = this.applyRules(hostname.replace(/^(www\.)/,""), doc)
+      if (redirect) {
+        return this.grabUrl(redirect)
+      }
+    }
 
     // Extract base URL
     const baseURL = extractBaseUrl(doc) || baseURLFallback
@@ -112,6 +124,24 @@ export class HTMLGrabr {
     }
     const body = await res.text()
     return this.grab(body, url.toString())
+  }
+
+  private applyRules(hostname: string, doc: Document): URL | null {
+    if (!this.config.rules.has(hostname)) {
+      return null
+    }
+    const rule = this.config.rules.get(hostname)
+    const node = doc.querySelector(rule.selector)
+    if (node && isElementNode(node)) {
+      if (rule.type === 'redirect' && (node.hasAttribute('src') || node.hasAttribute('href'))) {
+        const src = node.getAttribute('src') || node.getAttribute('href')
+        return new URL(src)
+      } else {
+        doc.body.childNodes.forEach((n) => n.remove())
+        doc.body.prepend(node)
+      }
+    }
+    return null
   }
 }
 

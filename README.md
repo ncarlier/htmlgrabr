@@ -19,21 +19,6 @@ A Node.js library to grab and clean HTML content.
     - Remove unwanted attributes (such as `style`, `class`, `id`, ...)
     - And more
 
-The result is a grabbed page object:
-
-```typescript
-interface GrabbedPage {
-  title: string
-  url: string | null
-  image: string | null
-  html: string
-  text: string
-  excerpt: string
-  length: number
-  images: ImageMeta[]
-}
-```
-
 ### Usage
 
 ```bash
@@ -54,6 +39,60 @@ grabber.grabUrl(new URL('https://about.readflow.app'))
   }, err => {
     console.error(err)
   })
+```
+
+### API
+
+Create new instance:
+
+```js
+const HTMLGrabr = require('htmlgrabr').HTMLGrabr
+const grabber = new HTMLGrabr(config)
+```
+
+Configuration object:
+
+```typescript
+interface GrabberConfig {
+  debug?: boolean                   // Print debug logs if true
+  pretty?: boolean                  // Beautify HTML content if true
+  isBlacklisted?: BlacklistCtrlFunc // Function used to detect unwanted URLs
+  rewriteURL?: URLRewriterFunc      // Function used to rewrite HTML src attributes
+  rules?: Map<string, Rule>         // Rule definitions (see below)
+  headers?: Headers                 // HTTP headers to set
+}
+```
+
+Rule definition:
+
+```typescript
+export interface Rule {
+  selector: string             // HTML query selector
+  type: 'redirect' | 'content' // Rule type:
+  // - 'redirect' will use 'src' or 'href' attribute to redirect content extraction
+  // - 'content' to specify content to extract
+}
+```
+
+Grab a page:
+
+```js
+const result = grabber.grabUrl(new URL('https://...'))
+```
+
+Result object:
+
+```typescript
+interface GrabbedPage {
+  title: string        // Page title
+  url: string | null   // Source URL
+  image: string | null // Page illustration
+  html: string         // HTML content
+  text: string         // Text content (from HTML)
+  excerpt: string      // Excerpt (from meta data or HTML)
+  length: number       // Read length
+  images: ImageMeta[]  // Embedded imnage URLs
+}
 ```
 
 ---
