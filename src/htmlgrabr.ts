@@ -114,11 +114,23 @@ export class HTMLGrabr {
    * @returns a page object
    */
   public async grabUrl(url: URL): Promise<GrabbedPage> {
-    const req = new Request(url.toString(), {
+    let req = new Request(url.toString(), {
       headers: this.config.headers,
+      method: 'HEAD'
     })
 
-    const res = await fetch(req)
+    let res = await fetch(req)
+    if (!res.ok) {
+      throw new Error(`bad status response: ${res.statusText}`)
+    }
+    const contentType = res.headers.get('Content-Type')
+    if (!contentType.startsWith('text/html')) {
+      throw new Error(`unsupported content type: ${contentType}`)
+    }
+    req = new Request(url.toString(), {
+      headers: this.config.headers,
+    })
+    res = await fetch(req)
     if (!res.ok) {
       throw new Error(`bad status response: ${res.statusText}`)
     }

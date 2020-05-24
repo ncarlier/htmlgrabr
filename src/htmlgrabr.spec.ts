@@ -21,6 +21,14 @@ test('grab bad URL', async (t) => {
 	t.is(error.message, 'bad status response: Not Found')
 })
 
+test('grab bad content type', async (t) => {
+  const grabber = new HTMLGrabr()
+  const grab = grabber.grabUrl(new URL('https://readflow.app/logo.png'))
+
+  const error = await t.throwsAsync(grab)
+	t.is(error.message, 'unsupported content type: image/png')
+})
+
 test('grab valid URL', async (t) => {
   const grabber = new HTMLGrabr()
   t.falsy(grabber.config.debug)
@@ -42,7 +50,7 @@ test('grab URL with redirect rule definition', async (t) => {
   const page = await grabber.grabUrl(new URL('https://www.reddit.com/r/programming/comments/gp3yq6/kong_api_gateway_from_zero_to_production/'))
   t.not(page, null)
   t.is(page.title, 'Kong API Gateway - Zero to Production')
-  t.is(page.url, 'https://medium.com/@imarunrk/kong-api-gateway-zero-to-production-5b8431495ee')
+  t.is(page.url, 'https://medium.com/swlh/kong-api-gateway-zero-to-production-5b8431495ee')
 })
 
 test('grab simple HTML content', async (t) => {
