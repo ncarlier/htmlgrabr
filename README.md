@@ -14,7 +14,7 @@ A Node.js library to grab and clean HTML content.
 - Clean the page content:
   - Extract main HTML content using [mozilla-readability](https://github.com/mozilla/readability)
   - Sanitize HTML content using [DOMPurify](https://github.com/cure53/DOMPurify), with some extras:
-    - Remove blacklisted links or images
+    - Remove unwanted links or images
     - Remove pixel tracker
     - Remove unwanted attributes (such as `style`, `class`, `id`, ...)
     - And more
@@ -54,12 +54,12 @@ Configuration object:
 
 ```typescript
 interface GrabberConfig {
-  debug?: boolean                   // Print debug logs if true
-  pretty?: boolean                  // Beautify HTML content if true
-  isBlacklisted?: BlacklistCtrlFunc // Function used to detect unwanted URLs
-  rewriteURL?: URLRewriterFunc      // Function used to rewrite HTML src attributes
-  rules?: Map<string, Rule>         // Rule definitions (see below)
-  headers?: Headers                 // HTTP headers to set
+  debug?: boolean                     // Print debug logs if true
+  pretty?: boolean                    // Beautify HTML content if true
+  isBlockedHost?: BlockedHostCtrlFunc // Function used to detect unwanted URLs
+  rewriteURL?: URLRewriterFunc        // Function used to rewrite HTML src attributes
+  rules?: Map<string, Rule>           // Rule definitions (see below)
+  headers?: Headers                   // HTTP headers to set
 }
 ```
 
@@ -91,7 +91,7 @@ interface GrabbedPage {
   text: string         // Text content (from HTML)
   excerpt: string      // Excerpt (from meta data or HTML)
   length: number       // Read length
-  images: ImageMeta[]  // Embedded imnage URLs
+  images: ImageMeta[]  // Embedded image URLs
 }
 ```
 

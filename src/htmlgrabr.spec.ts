@@ -76,7 +76,7 @@ test('grab simple HTML content', async (t) => {
   t.is(page.excerpt, 'Hello World!')
 })
 
-test('grab uggly HTML contents', async (t) => {
+test('grab ugly HTML contents', async (t) => {
   // load test cases
   const testCasesLocation = resolve(process.cwd(), 'specs')
   const files = await ls(testCasesLocation)

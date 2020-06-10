@@ -2,7 +2,7 @@ import createDOMPurify from 'dompurify'
 import { JSDOM } from 'jsdom'
 import { parse, resolve } from 'url'
 
-import { BlacklistCtrlFunc } from './blacklist'
+import { BlockedHostCtrlFunc } from './blocked-host'
 import { isElementNode } from './helpers'
 
 export type URLRewriterFunc = (url: string) => string
@@ -12,7 +12,7 @@ export type FilterFunc = (currentNode: Element, event: DOMPurify.HookEvent, conf
 interface CleanupProps {
   readonly baseURL?: string
   readonly debug?: boolean
-  readonly isBlacklisted?: BlacklistCtrlFunc
+  readonly isBlockedHost?: BlockedHostCtrlFunc
   readonly rewriteURL?: URLRewriterFunc
   readonly filters?: readonly FilterFunc[]
 }
@@ -47,17 +47,17 @@ function removeImageTracker(): FilterFunc {
 }
 
 /**
- * Delete all HTML elements that refer to a blacklisted site.
- * @param isBlacklist function to control if the hostname is blacklisted
+ * Delete all HTML elements that refer to a blocked host.
+ * @param isBlockedHost function to control if the hostname is blocked
  * @returns the filtering function
  */
-function removeBlacklistedLinks(isBlacklisted: BlacklistCtrlFunc): FilterFunc {
+function removeBlockedHostLinks(isBlockedHost: BlockedHostCtrlFunc): FilterFunc {
   return (node) => {
     if (isElementNode(node) && (node.hasAttribute('src') || node.hasAttribute('href'))) {
       const src = node.getAttribute('src') || node.getAttribute('href')
       if (src) {
         const hostname = parse(src).hostname || 'undefined'
-        if (isBlacklisted(hostname) && node.parentNode) {
+        if (isBlockedHost(hostname) && node.parentNode) {
           node.parentNode.removeChild(node)
         }
       }
@@ -138,8 +138,8 @@ export function sanitize(html: string, props: CleanupProps): string {
   if (props.baseURL) {
     filters.push(rebaseSrcAttribute(props.baseURL))
   }
-  if (props.isBlacklisted) {
-    filters = [removeBlacklistedLinks(props.isBlacklisted), ...filters]
+  if (props.isBlockedHost) {
+    filters = [removeBlockedHostLinks(props.isBlockedHost), ...filters]
   }
   if (props.rewriteURL) {
     filters = [rewriteSrcAttribute(props.rewriteURL), ...filters]

@@ -1,2 +1,2 @@
 export * from './htmlgrabr'
-export * from './blacklist'
+export * from './blocked-host'

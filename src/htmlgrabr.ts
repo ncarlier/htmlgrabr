@@ -4,7 +4,7 @@ import fetch, { Headers, Request } from 'node-fetch'
 import pretty from 'pretty'
 import { URL } from 'url'
 
-import { BlacklistCtrlFunc, isBlacklisted as defaultIsBlacklisted } from './blacklist'
+import { BlockedHostCtrlFunc, isBlockedHost as defaultIsBlockedHost } from './blocked-host'
 import { extractBaseUrl, extractImages, extractOpenGraphProps, ImageMeta, isElementNode } from './helpers'
 import { sanitize, URLRewriterFunc } from './sanitize'
 import { DefaultRules, Rule } from './rules'
@@ -12,7 +12,7 @@ import { DefaultRules, Rule } from './rules'
 interface GrabberConfig {
   readonly debug?: boolean
   readonly pretty?: boolean
-  readonly isBlacklisted?: BlacklistCtrlFunc
+  readonly isBlockedHost?: BlockedHostCtrlFunc
   readonly rewriteURL?: URLRewriterFunc
   readonly rules?: Map<string, Rule>
   readonly headers?: Headers
@@ -36,7 +36,7 @@ const DefaultConfig: GrabberConfig = {
     'User-Agent': 'Mozilla/5.0 (compatible; HTMLGrabr/1.0)',
   }),
   rules: DefaultRules,
-  isBlacklisted: defaultIsBlacklisted,
+  isBlockedHost: defaultIsBlockedHost,
 }
 
 export class HTMLGrabr {
@@ -53,7 +53,7 @@ export class HTMLGrabr {
    * @returns a page object
    */
   public async grab(content: string, baseURLFallback?: string): Promise<GrabbedPage> {
-    const { debug, isBlacklisted, rewriteURL } = this.config
+    const { debug, isBlockedHost, rewriteURL } = this.config
 
     // Load content into a virtual DOM
     const dom = new JSDOM(content, {
@@ -87,7 +87,7 @@ export class HTMLGrabr {
     }
 
     // Sanitize content
-    let html = sanitize(article.content, { baseURL, debug, isBlacklisted, rewriteURL })
+    let html = sanitize(article.content, { baseURL, debug, isBlockedHost, rewriteURL })
     if (debug) {
       console.log('HTML content after sanitization:', html)
     }
