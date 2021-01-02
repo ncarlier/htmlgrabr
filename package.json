@@ -55,18 +55,18 @@
     "prepare-release": "One-step: clean, build, test, publish docs, and prep a release"
   },
   "dependencies": {
-    "@types/dompurify": "^2.0.1",
-    "@types/jsdom": "^16.2.1",
+    "@mozilla/readability": "^0.4.0",
+    "@types/dompurify": "^2.1.0",
+    "@types/jsdom": "^16.2.5",
     "@types/mime-types": "^2.1.0",
-    "@types/mozilla-readability": "^0.1.4",
+    "@types/mozilla-readability": "^0.2.0",
     "@types/node-fetch": "^2.5.7",
-    "dompurify": "^2.0.10",
+    "dompurify": "^2.2.6",
     "html2plaintext": "^2.1.2",
-    "jsdom": "^16.2.2",
-    "mime-types": "^2.1.27",
-    "mozilla-readability": "git+https://git@github.com/mozilla/readability.git",
-    "node-fetch": "^2.6.0",
-    "parse5": "^6.0.0",
+    "jsdom": "^16.4.0",
+    "mime-types": "^2.1.28",
+    "node-fetch": "^2.6.1",
+    "parse5": "^6.0.1",
     "pretty": "^2.0.0"
   },
   "devDependencies": {

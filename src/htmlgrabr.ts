@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom'
-import Readability from 'mozilla-readability'
+import { Readability } from '@mozilla/readability'
 import fetch, { Headers, Request } from 'node-fetch'
 import pretty from 'pretty'
 import { URL } from 'url'
