@@ -1,6 +1,6 @@
 {
   "name": "htmlgrabr",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "A Node.js library to grab and clean HTML content.",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",

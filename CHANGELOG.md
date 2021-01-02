@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/ncarlier/htmlgrabr/compare/v1.0.4...v1.1.0) (2021-01-02)
+
+
+### Bug Fixes
+
+* **doc:** update CHANGELOG ([8311fc8](https://github.com/ncarlier/htmlgrabr/commit/8311fc8))
+
+
+### Features
+
+* add content extraction rules ([8f0b886](https://github.com/ncarlier/htmlgrabr/commit/8f0b886))
+* limit to HTML content type URL ([f93c3d3](https://github.com/ncarlier/htmlgrabr/commit/f93c3d3))
+
+
+
 <a name="1.0.4"></a>
 ## [1.0.4](https://github.com/ncarlier/htmlgrabr/compare/v1.0.3...v1.0.4) (2020-05-09)
 
