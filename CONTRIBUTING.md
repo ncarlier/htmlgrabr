@@ -61,20 +61,9 @@ The subject contains succinct description of the change:
 
 ## Release
 
-Generate the changelog (by using
-[conventional changelog](https://github.com/conventional-changelog]) CLI):
-
 ```bash
-$ standard-changelog --first-release
-```
-
-Tag the version according to the [semantic versioning rules](https://semver.org/)
-and deploy the release:
-
-```bash
-$ git tag -a 1.0.0-beta.2
-$ # Use the changelog header as tag comment.
-$ git push --tags
+$ npm test
+$ npm run prepare-release
 ```
 
 ---
